@@ -8,10 +8,20 @@ namespace RemoveUnusedResources
 {
     class Program
     {
+        /// <summary>
+        /// XAML and CS files
+        /// </summary>
         static readonly List<string> Files = new List<string>();
+
+        /// <summary>
+        /// RESX files
+        /// </summary>
         static readonly List<string> ResourceFiles = new List<string>();
 
-        private static readonly string[] Whitelist = new[] {"ResourceFlowDirection", "ResourceLanguage", "MBNoText", "MBYesText", "MBCancelText", "MBOkText", "ListBoxEmptyContent", "ListPullToRefresh", "ListPullToRefreshLoading", "ListPullToRefreshTime", "ListReleaseToRefresh" };
+        /// <summary>
+        /// String to be skipped, mostly from Telerik controls
+        /// </summary>
+        private static readonly string[] Whitelist = new[] { "ResourceFlowDirection", "ResourceLanguage", "MBNoText", "MBYesText", "MBCancelText", "MBOkText", "ListBoxEmptyContent", "ListPullToRefresh", "ListPullToRefreshLoading", "ListPullToRefreshTime", "ListReleaseToRefresh" };
 
         static void Main(string[] args)
         {
@@ -25,7 +35,7 @@ namespace RemoveUnusedResources
 
             Console.WriteLine("Scanning " + path);
 
-            DirSearch(path);
+            DirSearch(path); //get all the XAML, CS and RESX files
 
             foreach (var file in ResourceFiles)
             {
@@ -41,20 +51,45 @@ namespace RemoveUnusedResources
                     var content = File.ReadAllText(f);
                     foreach (var resource in resources)
                     {
-                        if (content.Contains("." + resource) || Whitelist.Contains(resource))
+                        if (Whitelist.Contains(resource))
                         {
                             used.Add(resource);
+                            continue;
+                        }
+
+                        if (f.EndsWith(".xaml"))
+                        {
+                            //{Binding LocalizedResources.PaymentSelection, Source={StaticResource LocalizedStrings}
+                            if (content.Contains(string.Format("LocalizedResources.{0}", resource)))
+                            {
+                                used.Add(resource);
+                            }
+                        }
+                        else if (f.EndsWith(".cs"))
+                        {
+                            //AppResources.PaymentSelection
+                            if (content.Contains(string.Format("Resources.{0}", resource)))
+                            {
+                                used.Add(resource);
+                            }
                         }
                     }
                 }
 
-                var unused = resources.Where(l => !used.Contains(l)).ToList();
-                Console.WriteLine("Unused keys: "+unused.Count);
+                var unusedCount = resources.Count - used.Count;
+                if (unusedCount == 0)
+                {
+                    Console.WriteLine("No unused strings found");
+                }
+                else
+                {
+                    Console.WriteLine("Unused strings: " + unusedCount);
 
-                doc.Descendants("data").Where(l => unused.Contains(l.Attribute("name").Value)).Remove();
+                    doc.Descendants("data").Where(l => !used.Contains(l.Attribute("name").Value)).Remove();
 
-                Console.WriteLine("Saving");
-                File.WriteAllText(file,doc.ToString());
+                    Console.WriteLine("Saving " + file);
+                    File.WriteAllText(file, doc.ToString());
+                }
 
                 Console.WriteLine();
             }
@@ -62,27 +97,20 @@ namespace RemoveUnusedResources
 
         private static void DirSearch(string sDir)
         {
-            try
+            foreach (string d in Directory.GetDirectories(sDir))
             {
-                foreach (string d in Directory.GetDirectories(sDir))
+                foreach (string f in Directory.GetFiles(d))
                 {
-                    foreach (string f in Directory.GetFiles(d))
+                    if (f.EndsWith(".xaml") || f.EndsWith(".cs"))
                     {
-                        if (f.EndsWith(".xaml") || f.EndsWith(".cs"))
-                        {
-                            Files.Add(f);
-                        }
-                        if (f.EndsWith(".resx"))
-                        {
-                            ResourceFiles.Add(f);
-                        }
+                        Files.Add(f);
                     }
-                    DirSearch(d);
+                    if (f.EndsWith(".resx"))
+                    {
+                        ResourceFiles.Add(f);
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
+                DirSearch(d);
             }
         }
     }
