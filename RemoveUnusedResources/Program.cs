@@ -21,7 +21,7 @@ namespace RemoveUnusedResources
         /// <summary>
         /// String to be skipped, mostly from Telerik controls
         /// </summary>
-        private static readonly string[] Whitelist = new[] { "ResourceFlowDirection", "ResourceLanguage", "MBNoText", "MBYesText", "MBCancelText", "MBOkText", "ListBoxEmptyContent", "ListPullToRefresh", "ListPullToRefreshLoading", "ListPullToRefreshTime", "ListReleaseToRefresh" };
+        private static readonly string[] Whitelist = new[] { "ResourceFlowDirection", "ResourceLanguage", "MBNoText", "MBYesText", "MBCancelText", "MBOkText", "ListBoxEmptyContent", "ListPullToRefresh", "ListPullToRefreshLoading", "ListPullToRefreshTime", "ListReleaseToRefresh", "RateReminder_MessageBox_Content", "RateReminder_MessageBox_SkipFurtherRemindersMessage", "RateReminder_MessageBox_Title", "PasswordBoxShowPasswordString" };
 
         static void Main(string[] args)
         {
