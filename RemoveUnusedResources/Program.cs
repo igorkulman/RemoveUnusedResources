@@ -97,19 +97,20 @@ namespace RemoveUnusedResources
 
         private static void DirSearch(string sDir)
         {
-            foreach (string d in Directory.GetDirectories(sDir))
+            foreach (string f in Directory.GetFiles(sDir))
             {
-                foreach (string f in Directory.GetFiles(d))
+                if ((f.EndsWith(".xaml") || f.EndsWith(".cs")) && !f.EndsWith(".Designer.cs"))
                 {
-                    if (f.EndsWith(".xaml") || f.EndsWith(".cs"))
-                    {
-                        Files.Add(f);
-                    }
-                    if (f.EndsWith(".resx"))
-                    {
-                        ResourceFiles.Add(f);
-                    }
+                    Files.Add(f);
                 }
+                if (f.EndsWith(".resx"))
+                {
+                    ResourceFiles.Add(f);
+                }
+            }
+
+            foreach (string d in Directory.GetDirectories(sDir))
+            {                
                 DirSearch(d);
             }
         }
